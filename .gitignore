@@ -1,0 +1,4 @@
+/target
+/src/runBot.ps1
+/src/testing
+Cargo.lock
