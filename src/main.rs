@@ -1,5 +1,4 @@
 use std::env;
-
 use serenity::async_trait;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
@@ -7,20 +6,23 @@ use serenity::prelude::*;
 
 struct Handler;
 
+
 #[async_trait]
 impl EventHandler for Handler {
-    // Set a handler for the `message` event - so that whenever a new message
-    // is received - the closure (or function) passed will be called.
-    //
-    // Event handlers are dispatched through a threadpool, and so multiple
-    // events can be dispatched simultaneously.
+    // Exectutes every message
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "!ping" {
-            // Sending a message can fail, due to a network error, an
-            // authentication error, or lack of permissions to post in the
-            // channel, so log to stdout when some error happens, with a
-            // description of it.
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
+        let prefix="test!";
+
+        let all_args: Vec<&str> = msg.content.split_whitespace().collect();
+        if all_args.len()==0 || !all_args[0].starts_with(prefix){
+            return message_not_cmd(ctx,msg).await
+        }
+        let cmd = &*all_args[0][prefix.len()..].to_owned();
+        let args = all_args[1..].to_owned();
+        println!("{}, {:?}, {:?}", cmd, args,all_args);
+
+        if cmd == "ping" {
+            if let Err(why) = msg.channel_id.say(&ctx.http, "pong!").await {
                 println!("Error sending message: {:?}", why);
             }
         }
@@ -35,6 +37,10 @@ impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
     }
+}
+
+async fn message_not_cmd(_ctx: Context, _msg: Message){
+    return
 }
 
 #[tokio::main]
